@@ -41,18 +41,14 @@ init:
 	@cmake --build $(BUILD_DIR) --target help
 	@$(MAKE) link-cc
 	@echo "Проект инициализирован. Готов к разработке."
-	@echo "Совет: используй 'make build' или 'make TARGET=my_app'"
+	@echo "Совет: используй 'make build' или 'make run TARGET=my_app'"
 
 # Симлинк compile_commands.json в корень (если ещё не создан)
 .PHONY: link-cc
 link-cc:
 	@if [ ! -L $(COMPILE_COMMANDS) ] && [ -f $(BUILD_DIR)/$(COMPILE_COMMANDS) ]; then \
-		ln -sfv $(BUILD_DIR)/$(COMPILE_COMMANDS) ./ ; \
-		echo "Создан симлинк: $(COMPILE_COMMANDS) -> $(BUILD_DIR)/$(COMPILE_COMMANDS)"; \
-	elif [ -f $(BUILD_DIR)/$(COMPILE_COMMANDS) ]; then \
-		echo "$(COMPILE_COMMANDS) уже доступен в корне"; \
-	else \
-		echo "$(COMPILE_COMMANDS) ещё не сгенерирован (выполни 'make init' или 'make build')"; \
+		ln -sf $(BUILD_DIR)/$(COMPILE_COMMANDS) ./ ; \
+		echo "  -> Создан симлинк: $(COMPILE_COMMANDS) -> $(BUILD_DIR)/$(COMPILE_COMMANDS)"; \
 	fi
 
 # ------------------------------------------------------------------------
@@ -71,7 +67,8 @@ rebuild: clean build
 # ------------------------------------------------------------------------
 # Сборка ОДНОЙ цели
 # ------------------------------------------------------------------------
-$(TARGET):
+.PHONY: run
+run:
 ifeq ($(TARGET_EXISTS),0)
 	$(error Цель '$(TARGET)' не найдена. Проверь: $(SRC_DIR)/$(TARGET)/)
 endif
@@ -83,7 +80,7 @@ endif
 	@./bin/$(TARGET)
 
 .PHONY: rebuild-target
-rebuild-target: clean-target $(TARGET)
+rebuild-target: clean-target run
 
 # ------------------------------------------------------------------------
 # Тесты
@@ -122,7 +119,7 @@ clean-target:
 # Анализ (macOS)
 # ------------------------------------------------------------------------
 .PHONY: leaks
-leaks: $(TARGET)
+leaks: run
 ifeq ($(ASAN),ON)
 	@echo "ASan включён -> leaks не работает."
 	@echo "Собери без ASan:"
@@ -135,7 +132,7 @@ endif
 release: BUILD_TYPE := Release
 release: ASAN := OFF
 release: UBSAN := OFF
-release: $(TARGET)
+release: run
 	@echo "Собрано в Release: ./bin/$(TARGET)"
 
 # ------------------------------------------------------------------------
@@ -186,7 +183,7 @@ help:
 	@echo "Доступные команды:"
 	@echo "  make init                    - Инициализация проекта (CMake + compile_commands)"
 	@echo "  make build                   - Сборка всех целей"
-	@echo "  make TARGET=<name>           - Сборка и запуск одной цели"
+	@echo "  make run TARGET=<name>       - Сборка и запуск одной цели"
 	@echo "  make new TARGET=<name>       - Создать новый подпроект из шаблона"
 	@echo "  make test                    - Запуск всех тестов (ctest)"
 	@echo "  make bench                   - Запуск бенчмарков"

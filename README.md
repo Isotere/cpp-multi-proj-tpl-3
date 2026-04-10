@@ -63,7 +63,7 @@ make init   # сгенерировать CMake + compile_commands.json
 ```bash
 make build              # собрать всё
 make test               # запустить тесты
-make TARGET=hello_world # собрать и запустить одну цель
+make run TARGET=hello_world # собрать и запустить одну цель
 ```
 
 ## Команды Makefile
@@ -72,7 +72,7 @@ make TARGET=hello_world # собрать и запустить одну цель
 |---|---|
 | `make init` | Инициализация проекта (CMake + compile_commands) |
 | `make build` | Сборка всех целей |
-| `make TARGET=<name>` | Сборка и запуск одной цели |
+| `make run TARGET=<name>` | Сборка и запуск одной цели |
 | `make new TARGET=<name>` | Создать новый подпроект из шаблона |
 | `make test` | Запуск всех тестов (ctest) |
 | `make bench` | Запуск бенчмарков |
