@@ -1,8 +1,11 @@
-
-
-bin
+build/
+bin/
 compile_commands.json
 
-.idea
+.idea/
+.vscode/*
+!.vscode/settings.json
+.cache/
+.DS_Store
 
-build
+*.dSYM/

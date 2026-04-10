@@ -3,12 +3,7 @@ cmake_minimum_required(VERSION 4.0)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-project(project_name VERSION 0.0.${PATCH_VERSION})
-
-set(BOOST_ROOT /opt/homebrew/opt/boost)
-
-option(WITH_BOOST_TEST "Whether to build Boost test" ON)
-
+project(__PROJECT_NAME__ VERSION 0.0.${PATCH_VERSION})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     # -g: symbols для профайлера
@@ -19,8 +14,6 @@ endif()
 
 # === Определяем SDK ТОЛЬКО ПОСЛЕ project() и компилятора ===
 if(APPLE)
-    # CMake ≥ 3.15+ автоматически вызывает xcrun при установке CMAKE_OSX_SYSROOT=""
-    # Но мы сделаем явно — для надёжности
     if(NOT CMAKE_OSX_SYSROOT)
         execute_process(
                 COMMAND xcrun --show-sdk-path
@@ -29,10 +22,10 @@ if(APPLE)
                 ERROR_QUIET
         )
         if(NOT SDK_PATH)
-            message(FATAL_ERROR "❌ Не найден macOS SDK. Выполни: xcode-select --install")
+            message(FATAL_ERROR "Не найден macOS SDK. Выполни: xcode-select --install")
         endif()
         set(CMAKE_OSX_SYSROOT "${SDK_PATH}" CACHE STRING "" FORCE)
-        message(STATUS "✅ Используется macOS SDK: ${SDK_PATH}")
+        message(STATUS "Используется macOS SDK: ${SDK_PATH}")
     endif()
 
     if(NOT CMAKE_OSX_ARCHITECTURES)
@@ -90,41 +83,46 @@ include(cmake/ProjectWarnings.cmake)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
-# === Остальное без изменений ===
-set(BUILD_TARGET "" CACHE STRING "Target to build (e.g. day1_raii)")
 include_directories(libs)
 
-# FetchContent added in CMake 3.11, downloads during the configure step
+# === Зависимости ===
 include(FetchContent)
-set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SFML_BUILD_DOC OFF CACHE BOOL "" FORCE)
-set(SFML_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 3.0.2
+
+# Google Test
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.16.0
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
-    SYSTEM)
-FetchContent_MakeAvailable(SFML)
+    SYSTEM
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
-set(CPACK_GENERATOR DEB)
-set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-set(CPACK_PACKAGE_CONTACT example@example.com)
-include(CPack)
-
-if (WITH_BOOST_TEST)
-    enable_testing()
-endif ()
-
-if(BUILD_TARGET AND EXISTS "${CMAKE_SOURCE_DIR}/src/${BUILD_TARGET}/CMakeLists.txt")
-    add_subdirectory("src/${BUILD_TARGET}")
-else()
-    file(GLOB TARGET_DIRS RELATIVE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/*)
-    foreach(dir ${TARGET_DIRS})
-        if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/src/${dir}" AND EXISTS "${CMAKE_SOURCE_DIR}/src/${dir}/CMakeLists.txt")
-            add_subdirectory("src/${dir}")
-        endif()
-    endforeach()
+# Google Benchmark
+option(WITH_BENCHMARK "Whether to build Google Benchmark" ON)
+if(WITH_BENCHMARK)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        googlebenchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.9.1
+        GIT_SHALLOW ON
+        EXCLUDE_FROM_ALL
+        SYSTEM
+    )
+    FetchContent_MakeAvailable(googlebenchmark)
 endif()
+
+enable_testing()
+
+# === Подпроекты ===
+file(GLOB TARGET_DIRS RELATIVE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/*)
+foreach(dir ${TARGET_DIRS})
+    if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/src/${dir}" AND EXISTS "${CMAKE_SOURCE_DIR}/src/${dir}/CMakeLists.txt")
+        add_subdirectory("src/${dir}")
+    endif()
+endforeach()
