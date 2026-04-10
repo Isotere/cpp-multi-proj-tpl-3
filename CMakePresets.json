@@ -1,0 +1,55 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "mac-debug",
+            "displayName": "macOS Debug (clang + ninja)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
+                "CMAKE_OBJC_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+                "CMAKE_OBJCXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++"
+            },
+            "environment": {
+                "CCACHE_DIR": "${sourceDir}/.ccache"
+            }
+        },
+        {
+            "name": "mac-release",
+            "displayName": "macOS Release (clang + ninja)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
+                "CMAKE_OBJC_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+                "CMAKE_OBJCXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++"
+            },
+            "environment": {
+                "CCACHE_DIR": "${sourceDir}/.ccache"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "mac-debug",
+            "configurePreset": "mac-debug"
+        },
+        {
+            "name": "mac-release",
+            "configurePreset": "mac-release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "mac-debug",
+            "configurePreset": "mac-debug"
+        }
+    ]
+}
