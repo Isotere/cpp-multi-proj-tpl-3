@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "inputs": [
+    {
+      "id": "target",
+      "type": "promptString",
+      "description": "Имя цели из src/",
+      "default": "hello_world"
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Debug target",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/${input:target}",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "make: build target",
+      "sourceLanguages": ["cpp"],
+      "env": {
+        "ASAN_OPTIONS": "abort_on_error=1:halt_on_error=1:detect_leaks=0",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      }
+    },
+    {
+      "name": "Debug test",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/test_${input:target}",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "make: build all",
+      "sourceLanguages": ["cpp"],
+      "env": {
+        "ASAN_OPTIONS": "abort_on_error=1:halt_on_error=1:detect_leaks=0",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      }
+    },
+    {
+      "name": "Attach to process",
+      "type": "lldb",
+      "request": "attach",
+      "pid": "${command:pickProcess}"
+    }
+  ]
+}

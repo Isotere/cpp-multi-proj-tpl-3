@@ -1,0 +1,155 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "target",
+      "type": "promptString",
+      "description": "Имя цели из src/",
+      "default": "hello_world"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "make: build all",
+      "type": "shell",
+      "command": "make build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "clear": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "make: build target",
+      "type": "shell",
+      "command": "cmake --build build --target ${input:target} -- -j",
+      "group": "build",
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "clear": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "make: run target",
+      "type": "shell",
+      "command": "make run TARGET=${input:target}",
+      "group": "build",
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "clear": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "make: test",
+      "type": "shell",
+      "command": "make test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "clear": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "make: bench",
+      "type": "shell",
+      "command": "make bench",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "clear": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "make: rebuild",
+      "type": "shell",
+      "command": "make rebuild",
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "clear": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "make: clean",
+      "type": "shell",
+      "command": "make clean",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "clear": true,
+        "panel": "shared"
+      }
+    }
+  ]
+}
