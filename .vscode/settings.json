@@ -6,7 +6,7 @@
     "--header-insertion=iwyu",
     "--pch-storage=memory",
     "--all-scopes-completion",
-    "--function-arg-placeholders"
+    "--function-arg-placeholders=true"
   ],
   "clangd.onConfigChanged": "restart",
   "[cpp]": {
