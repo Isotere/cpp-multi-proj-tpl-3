@@ -92,7 +92,7 @@ include(FetchContent)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.16.0
+    GIT_TAG v1.17.0
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
     SYSTEM
@@ -109,13 +109,15 @@ if(WITH_BENCHMARK)
     FetchContent_Declare(
         googlebenchmark
         GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG v1.9.1
+        GIT_TAG v1.9.5
         GIT_SHALLOW ON
         EXCLUDE_FROM_ALL
         SYSTEM
     )
     FetchContent_MakeAvailable(googlebenchmark)
 endif()
+
+include(cmake/ProjectTargets.cmake)
 
 enable_testing()
 

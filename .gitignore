@@ -12,3 +12,8 @@ compile_commands.json
 .DS_Store
 
 *.dSYM/
+
+.claude/*
+!.claude/settings.json
+.codex/
+.agents/

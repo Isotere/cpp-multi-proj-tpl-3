@@ -96,7 +96,11 @@ test: build
 .PHONY: bench
 bench: build
 	@echo "Запуск бенчмарков..."
-	@find $(BUILD_DIR) -name "bench_*" -type f -perm +111 -exec echo "-> {}" \; -exec {} \;
+	@for b in ./bin/bench_*; do \
+		[ -x "$$b" ] || continue; \
+		echo "-> $$b"; \
+		"$$b"; \
+	done
 
 # ------------------------------------------------------------------------
 # Очистка
@@ -150,33 +154,66 @@ new:
 ifeq ($(TARGET),)
 	$(error Укажи TARGET=name)
 endif
-	@mkdir -p $(SRC_DIR)/$(TARGET)/tests
+	@mkdir -p $(SRC_DIR)/$(TARGET)/tests $(SRC_DIR)/$(TARGET)/bench
+	@echo '// Common sources for $(TARGET).' > $(SRC_DIR)/$(TARGET)/tmp.cpp
 	@echo '#include <iostream>' > $(SRC_DIR)/$(TARGET)/main.cpp
 	@echo ''  >> $(SRC_DIR)/$(TARGET)/main.cpp
 	@echo 'int main() {' >> $(SRC_DIR)/$(TARGET)/main.cpp
 	@echo '    std::cout << "Hello from $(TARGET)\n";' >> $(SRC_DIR)/$(TARGET)/main.cpp
 	@echo '    return 0;' >> $(SRC_DIR)/$(TARGET)/main.cpp
 	@echo '}' >> $(SRC_DIR)/$(TARGET)/main.cpp
-	@echo 'add_executable($(TARGET) main.cpp)' > $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'target_compile_features($(TARGET) PRIVATE cxx_std_23)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'project_apply_warnings($(TARGET))' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo 'project_add_library($(TARGET)_lib' > $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    SOURCES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        tmp.cpp' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    INCLUDE_CURRENT_DIR' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo ')' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
 	@echo '' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo '# --- Tests ---' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'add_executable(test_$(TARGET) tests/test_main.cpp)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'target_link_libraries(test_$(TARGET) PRIVATE GTest::gtest_main)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'project_apply_warnings(test_$(TARGET))' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo 'project_add_executable($(TARGET)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    SOURCES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        main.cpp' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    LIBRARIES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        $(TARGET)_lib' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo ')' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
 	@echo '' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'include(GoogleTest)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
-	@echo 'gtest_discover_tests(test_$(TARGET))' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo 'project_add_gtest(test_$(TARGET)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    SOURCES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        tests/test_main.cpp' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    LIBRARIES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        $(TARGET)_lib' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo ')' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo 'project_add_benchmark(bench_$(TARGET)' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    SOURCES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        bench/bench_$(TARGET).cpp' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '    LIBRARIES' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo '        $(TARGET)_lib' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
+	@echo ')' >> $(SRC_DIR)/$(TARGET)/CMakeLists.txt
 	@echo '#include <gtest/gtest.h>' > $(SRC_DIR)/$(TARGET)/tests/test_main.cpp
 	@echo '' >> $(SRC_DIR)/$(TARGET)/tests/test_main.cpp
 	@echo 'TEST($(TARGET), SmokeTest) {' >> $(SRC_DIR)/$(TARGET)/tests/test_main.cpp
 	@echo '    EXPECT_EQ(1 + 1, 2);' >> $(SRC_DIR)/$(TARGET)/tests/test_main.cpp
 	@echo '}' >> $(SRC_DIR)/$(TARGET)/tests/test_main.cpp
+	@echo '#include <benchmark/benchmark.h>' > $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo 'namespace {' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '// NOLINTNEXTLINE(readability-identifier-naming)' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo 'void BM_$(TARGET)_Smoke(benchmark::State& state) {' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '    for (auto _ : state) {' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '        benchmark::DoNotOptimize(state.iterations());' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '    }' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '}' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo 'BENCHMARK(BM_$(TARGET)_Smoke);' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '}  // namespace' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo '' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
+	@echo 'BENCHMARK_MAIN();' >> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp
 	@echo "Шаблон создан: $(SRC_DIR)/$(TARGET)/"
+	@echo "  -> $(SRC_DIR)/$(TARGET)/tmp.cpp"
 	@echo "  -> $(SRC_DIR)/$(TARGET)/main.cpp"
 	@echo "  -> $(SRC_DIR)/$(TARGET)/CMakeLists.txt"
 	@echo "  -> $(SRC_DIR)/$(TARGET)/tests/test_main.cpp"
+	@echo "  -> $(SRC_DIR)/$(TARGET)/bench/bench_$(TARGET).cpp"
 
 .PHONY: help
 help:

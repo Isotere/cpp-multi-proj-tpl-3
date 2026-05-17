@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(cmake:*)",
+      "Bash(ctest:*)",
+      "Bash(ninja:*)",
+      "Bash(clang-format:*)",
+      "Bash(clang-tidy:*)",
+      "Bash(./bin/*)"
+    ]
+  }
+}

@@ -6,6 +6,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             -Wshadow -Wnon-virtual-dtor -Wold-style-cast
             -Wcast-align -Wunused -Woverloaded-virtual
             -Wnull-dereference -Wdouble-promotion -Wformat=2
+            -fcolor-diagnostics
+            -fdiagnostics-show-template-tree
+            -ftemplate-backtrace-limit=10
+            -fmacro-backtrace-limit=10
+            -ferror-limit=5
     )
 endif()
 

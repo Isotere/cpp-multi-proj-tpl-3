@@ -11,9 +11,13 @@ __PROJECT_DESCRIPTION__
 - **AddressSanitizer + UBSan** — включены по умолчанию в Debug-сборке
 - **clang-format + clangd + clang-tidy** — настроены, `compile_commands.json` генерируется автоматически
 - **Makefile** — удобные команды для сборки, тестов, бенчмарков, создания новых подпроектов
-- **Папка `libs/`** — для общих библиотек, используемых несколькими подпроектами
+- **CMake helpers** — `project_add_library/executable/gtest/benchmark` в `cmake/ProjectTargets.cmake`
+- **Папка `libs/`** — для общих библиотек, используемых несколькими подпроектами (PPP-заготовки в комплекте)
 - **Папка `datasets/`** — для датасетов (CSV, текстовые файлы и т.д.)
 - **Папка `scripts/`** — для вспомогательных скриптов (sanity checks, визуализация и т.д.)
+- **`CLAUDE.md`** — стартовый контекст для Claude Code
+- **`.claude/settings.json`** — базовые permissions для типовых build/test-команд
+
 ## Требования
 
 ```bash
@@ -22,7 +26,6 @@ brew install cmake ninja llvm
 
 # Опционально
 brew install gnuplot            # визуализация из C++
-pip3 install numpy scikit-learn # sanity checks для ML-проектов
 ```
 
 | Зависимость | Минимальная версия | Назначение |
@@ -101,17 +104,26 @@ make run TARGET=hello_world # собрать и запустить одну це
 ├── CMakeLists.txt              # Корневой CMake (зависимости, настройки компиляции)
 ├── Makefile                     # Удобные команды
 ├── setup.sh                    # Инициализация из шаблона (удаляется после запуска)
+├── CLAUDE.md                  # Контекст для Claude Code
 ├── cmake/
-│   └── ProjectWarnings.cmake   # Флаги предупреждений
+│   ├── ProjectWarnings.cmake   # Флаги предупреждений + clang diagnostics
+│   └── ProjectTargets.cmake    # Helpers: project_add_library/executable/gtest/benchmark
 ├── libs/                       # Общие библиотеки между подпроектами
+│   ├── PPP_support.h           # Bjarne PPP (3rd ed.) support — удалить если не нужно
+│   └── PPPheaders.h            # PPP umbrella header
 ├── src/                        # Подпроекты
-│   └── hello_world/            # Пример подпроекта
+│   └── hello_world/            # Пример подпроекта (lib + exec + tests + bench)
 │       ├── CMakeLists.txt
 │       ├── main.cpp
-│       └── tests/
-│           └── test_main.cpp
+│       ├── tmp.cpp
+│       ├── tests/
+│       │   └── test_main.cpp
+│       └── bench/
+│           └── bench_hello_world.cpp
 ├── datasets/                   # Датасеты (CSV, текстовые файлы)
 ├── scripts/                    # Вспомогательные скрипты
+├── .claude/
+│   └── settings.json           # Permissions для Claude Code
 ├── .clang-format               # Настройки форматирования
 ├── .clang-tidy                 # Настройки линтера
 └── .clangd                     # Настройки LSP
@@ -125,10 +137,27 @@ make new TARGET=my_app
 
 Создаст:
 - `src/my_app/main.cpp` — точка входа
-- `src/my_app/CMakeLists.txt` — сборка + тесты (GTest)
-- `src/my_app/tests/test_main.cpp` — заготовка теста
+- `src/my_app/tmp.cpp` — общая lib (`<name>_lib`)
+- `src/my_app/CMakeLists.txt` — `project_add_library/executable/gtest/benchmark`
+- `src/my_app/tests/test_main.cpp` — заготовка GTest
+- `src/my_app/bench/bench_my_app.cpp` — заготовка Google Benchmark
 
 Подпроект автоматически подхватится при следующей сборке (`make build`).
+
+## CMake helpers
+
+В каждом подпроекте используй декларативные helper-функции вместо boilerplate:
+
+```cmake
+project_add_library(my_lib SOURCES a.cpp b.cpp INCLUDE_CURRENT_DIR)
+project_add_executable(my_app SOURCES main.cpp LIBRARIES my_lib)
+project_add_gtest(test_my_app SOURCES tests/test_main.cpp LIBRARIES my_lib)
+project_add_benchmark(bench_my_app SOURCES bench/bench_my_app.cpp LIBRARIES my_lib)
+```
+
+Они автоматически применяют `cxx_std_23`, флаги warnings и (для GTest)
+`gtest_discover_tests`. `project_add_benchmark` no-op'ится при
+`-DWITH_BENCHMARK=OFF`.
 
 ## Как добавить общую библиотеку
 

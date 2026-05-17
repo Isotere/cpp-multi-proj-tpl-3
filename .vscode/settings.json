@@ -1,5 +1,7 @@
 {
+  "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd",
   "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}/build",
     "--background-index",
     "--clang-tidy",
     "--completion-style=detailed",
@@ -17,5 +19,6 @@
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
     "editor.formatOnSave": true
   },
-  "testMate.cpp.test.executables": "{build,bin}/**/*{test,Test,TEST}*"
+  "editor.inlayHints.enabled": "on",
+  "testMate.cpp.test.executables": "${workspaceFolder}/bin/test_*"
 }

@@ -1,11 +1,26 @@
-add_executable(hello_world main.cpp)
-target_compile_features(hello_world PRIVATE cxx_std_23)
-project_apply_warnings(hello_world)
+project_add_library(hello_world_lib
+    SOURCES
+        tmp.cpp
+    INCLUDE_CURRENT_DIR
+)
 
-# --- Tests ---
-add_executable(test_hello_world tests/test_main.cpp)
-target_link_libraries(test_hello_world PRIVATE GTest::gtest_main)
-project_apply_warnings(test_hello_world)
+project_add_executable(hello_world
+    SOURCES
+        main.cpp
+    LIBRARIES
+        hello_world_lib
+)
 
-include(GoogleTest)
-gtest_discover_tests(test_hello_world)
+project_add_gtest(test_hello_world
+    SOURCES
+        tests/test_main.cpp
+    LIBRARIES
+        hello_world_lib
+)
+
+project_add_benchmark(bench_hello_world
+    SOURCES
+        bench/bench_hello_world.cpp
+    LIBRARIES
+        hello_world_lib
+)

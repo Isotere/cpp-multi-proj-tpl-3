@@ -30,6 +30,10 @@ CheckOptions:
     value: _
   - key: readability-identifier-naming.ConstantCase
     value: UPPER_CASE
+  - key: readability-identifier-naming.ConstantParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalConstantCase
+    value: lower_case
   - key: readability-identifier-naming.EnumConstantCase
     value: CamelCase
 ...
